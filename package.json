@@ -8,7 +8,9 @@
   ],
   "scripts": {
     "build": "tsc",
+    "build:frontend": "vite build --config apps/frontend/vite.config.ts",
     "dev:backend": "npm run build && npm run start:backend",
+    "dev:frontend": "vite --config apps/frontend/vite.config.ts",
     "start:backend": "node dist/apps/backend/src/server.js",
     "typecheck": "tsc --noEmit"
   },
@@ -19,6 +21,9 @@
   },
   "dependencies": {
     "cheerio": "^1.2.0",
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "lucide-react": "^1.14.0",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5"
   }
 }
