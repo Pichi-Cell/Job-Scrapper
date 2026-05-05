@@ -78,6 +78,17 @@ function buildSourceParams(source: JobSource, filters: JobFilters): URLSearchPar
     addParam(params, "profile", filters.eyProfile);
   }
 
+  if (source === "google") {
+    addParam(params, "skills", filters.googleSkills);
+    addParam(params, "targetLevel", filters.googleTargetLevel);
+    params.set("remote", String(filters.googleRemote));
+  }
+
+  if (source === "accenture") {
+    addParam(params, "skills", filters.query || filters.googleSkills);
+    addParam(params, "businessArea", filters.accentureBusinessArea);
+  }
+
   return params;
 }
 

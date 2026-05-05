@@ -57,6 +57,22 @@ export function FilterPanel({
           >
             EY
           </button>
+          <button
+            aria-pressed={filters.sources.includes("google")}
+            className="segment"
+            type="button"
+            onClick={() => toggleSource("google")}
+          >
+            Google
+          </button>
+          <button
+            aria-pressed={filters.sources.includes("accenture")}
+            className="segment"
+            type="button"
+            onClick={() => toggleSource("accenture")}
+          >
+            Accenture
+          </button>
         </div>
 
         <button className="refresh-button" disabled={isLoading} type="submit">
@@ -119,6 +135,46 @@ export function FilterPanel({
             <option value="students">Students</option>
             <option value="experienced">Experienced</option>
           </select>
+        </label>
+
+        <label>
+          <span>Google Skills</span>
+          <input
+            value={filters.googleSkills}
+            onChange={(event) => update("googleSkills", event.target.value)}
+          />
+        </label>
+
+        <label>
+          <span>Google Level</span>
+          <select
+            value={filters.googleTargetLevel}
+            onChange={(event) => update("googleTargetLevel", event.target.value)}
+          >
+            <option value="EARLY,MID,INTERN_AND_APPRENTICE">
+              Early, Mid, Intern
+            </option>
+            <option value="EARLY">Early</option>
+            <option value="MID">Mid</option>
+            <option value="INTERN_AND_APPRENTICE">Intern</option>
+          </select>
+        </label>
+
+        <label className="checkbox-row">
+          <input
+            checked={filters.googleRemote}
+            type="checkbox"
+            onChange={(event) => update("googleRemote", event.target.checked)}
+          />
+          <span>Google remote eligible</span>
+        </label>
+
+        <label>
+          <span>Accenture Area</span>
+          <input
+            value={filters.accentureBusinessArea}
+            onChange={(event) => update("accentureBusinessArea", event.target.value)}
+          />
         </label>
 
         <label>

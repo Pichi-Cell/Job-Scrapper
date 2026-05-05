@@ -1,11 +1,18 @@
 import type { Request, Response } from "express";
 import type { JobListing } from "../../../../packages/shared/src/index.js";
-import { EyScraper, IbmTalentScraper } from "../scrapers/index.js";
+import {
+  AccentureScraper,
+  EyScraper,
+  GoogleScraper,
+  IbmTalentScraper,
+} from "../scrapers/index.js";
 import type { ScraperOptions } from "../types/scraper.js";
 import { fail, ok } from "./response.js";
 
 const ibmTalentScraper = new IbmTalentScraper();
 const eyScraper = new EyScraper();
+const googleScraper = new GoogleScraper();
+const accentureScraper = new AccentureScraper();
 
 export async function handleJobsRequest(
   request: Request,
@@ -27,11 +34,14 @@ export async function handleJobsRequest(
     response.status(200).json(ok<JobListing[]>(result.jobs));
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown scraper error";
+    console.error(`[scraper:${source}] ${message}`, error);
     response.status(502).json(fail(message));
   }
 }
 
-function getScraper(source: string): IbmTalentScraper | EyScraper | undefined {
+function getScraper(
+  source: string,
+): IbmTalentScraper | EyScraper | GoogleScraper | AccentureScraper | undefined {
   const normalizedSource = source.toLowerCase();
 
   if (normalizedSource === "ibm") {
@@ -40,6 +50,14 @@ function getScraper(source: string): IbmTalentScraper | EyScraper | undefined {
 
   if (normalizedSource === "ey") {
     return eyScraper;
+  }
+
+  if (normalizedSource === "google") {
+    return googleScraper;
+  }
+
+  if (normalizedSource === "accenture") {
+    return accentureScraper;
   }
 
   return undefined;
@@ -53,6 +71,10 @@ function buildScraperOptions(request: Request): ScraperOptions {
   const careerArea = getQueryString(request.query.careerArea);
   const experienceLevel = getQueryString(request.query.experienceLevel);
   const profile = getQueryString(request.query.profile);
+  const skills = getQueryString(request.query.skills);
+  const targetLevel = getQueryString(request.query.targetLevel);
+  const businessArea = getQueryString(request.query.businessArea);
+  const remote = parseBoolean(getQueryString(request.query.remote));
   const pageSize = parsePositiveInteger(getQueryString(request.query.pageSize));
   const maxPages = parsePositiveInteger(getQueryString(request.query.maxPages));
 
@@ -80,6 +102,22 @@ function buildScraperOptions(request: Request): ScraperOptions {
     options.profile = profile;
   }
 
+  if (skills !== undefined) {
+    options.skills = skills;
+  }
+
+  if (targetLevel !== undefined) {
+    options.targetLevel = targetLevel;
+  }
+
+  if (businessArea !== undefined) {
+    options.businessArea = businessArea;
+  }
+
+  if (remote !== undefined) {
+    options.remote = remote;
+  }
+
   if (pageSize !== undefined) {
     options.pageSize = pageSize;
   }
@@ -98,6 +136,22 @@ function parsePositiveInteger(value: string | undefined): number | undefined {
 
   const parsed = Number.parseInt(value, 10);
   return Number.isInteger(parsed) && parsed > 0 ? parsed : undefined;
+}
+
+function parseBoolean(value: string | undefined): boolean | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (value.toLowerCase() === "true") {
+    return true;
+  }
+
+  if (value.toLowerCase() === "false") {
+    return false;
+  }
+
+  return undefined;
 }
 
 function getQueryString(value: unknown): string | undefined {

@@ -10,6 +10,8 @@ interface ResultsBoardProps {
 const SOURCE_LABELS: Record<string, string> = {
   ibm: "IBM",
   ey: "EY",
+  google: "Google",
+  accenture: "Accenture",
 };
 
 export function ResultsBoard({

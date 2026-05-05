@@ -7,6 +7,10 @@ export interface ScraperOptions {
   careerArea?: string;
   experienceLevel?: string;
   profile?: string;
+  skills?: string;
+  remote?: boolean;
+  targetLevel?: string;
+  businessArea?: string;
   pageSize?: number;
   maxPages?: number;
 }

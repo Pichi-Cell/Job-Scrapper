@@ -46,7 +46,7 @@ select {
 .source-toggle {
   display: grid;
   overflow: hidden;
-  grid-template-columns: repeat(2, minmax(64px, 1fr));
+  grid-template-columns: repeat(4, minmax(64px, 1fr));
   border: 1px solid #b8c1cc;
 }
 
@@ -96,6 +96,18 @@ select {
   color: #52606d;
   font-size: 0.8rem;
   font-weight: 650;
+}
+
+.checkbox-row {
+  display: flex !important;
+  min-height: 42px;
+  align-items: center;
+  gap: 10px !important;
+}
+
+.checkbox-row input {
+  width: 18px;
+  min-height: 18px;
 }
 
 .filter-grid input,
@@ -169,7 +181,7 @@ select {
 
 .source-columns {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 18px;
 }
 
@@ -258,4 +270,3 @@ select {
     flex-direction: column;
   }
 }
-

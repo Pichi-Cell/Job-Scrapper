@@ -1,7 +1,9 @@
-import { EyScraper, IbmTalentScraper } from "../scrapers/index.js";
+import { AccentureScraper, EyScraper, GoogleScraper, IbmTalentScraper, } from "../scrapers/index.js";
 import { fail, ok } from "./response.js";
 const ibmTalentScraper = new IbmTalentScraper();
 const eyScraper = new EyScraper();
+const googleScraper = new GoogleScraper();
+const accentureScraper = new AccentureScraper();
 export async function handleJobsRequest(request, response) {
     const source = getQueryString(request.query.source) ?? "ibm";
     const scraper = getScraper(source);
@@ -15,6 +17,7 @@ export async function handleJobsRequest(request, response) {
     }
     catch (error) {
         const message = error instanceof Error ? error.message : "Unknown scraper error";
+        console.error(`[scraper:${source}] ${message}`, error);
         response.status(502).json(fail(message));
     }
 }
@@ -26,6 +29,12 @@ function getScraper(source) {
     if (normalizedSource === "ey") {
         return eyScraper;
     }
+    if (normalizedSource === "google") {
+        return googleScraper;
+    }
+    if (normalizedSource === "accenture") {
+        return accentureScraper;
+    }
     return undefined;
 }
 function buildScraperOptions(request) {
@@ -36,6 +45,10 @@ function buildScraperOptions(request) {
     const careerArea = getQueryString(request.query.careerArea);
     const experienceLevel = getQueryString(request.query.experienceLevel);
     const profile = getQueryString(request.query.profile);
+    const skills = getQueryString(request.query.skills);
+    const targetLevel = getQueryString(request.query.targetLevel);
+    const businessArea = getQueryString(request.query.businessArea);
+    const remote = parseBoolean(getQueryString(request.query.remote));
     const pageSize = parsePositiveInteger(getQueryString(request.query.pageSize));
     const maxPages = parsePositiveInteger(getQueryString(request.query.maxPages));
     if (query !== undefined) {
@@ -56,6 +69,18 @@ function buildScraperOptions(request) {
     if (profile !== undefined) {
         options.profile = profile;
     }
+    if (skills !== undefined) {
+        options.skills = skills;
+    }
+    if (targetLevel !== undefined) {
+        options.targetLevel = targetLevel;
+    }
+    if (businessArea !== undefined) {
+        options.businessArea = businessArea;
+    }
+    if (remote !== undefined) {
+        options.remote = remote;
+    }
     if (pageSize !== undefined) {
         options.pageSize = pageSize;
     }
@@ -70,6 +95,18 @@ function parsePositiveInteger(value) {
     }
     const parsed = Number.parseInt(value, 10);
     return Number.isInteger(parsed) && parsed > 0 ? parsed : undefined;
+}
+function parseBoolean(value) {
+    if (value === undefined) {
+        return undefined;
+    }
+    if (value.toLowerCase() === "true") {
+        return true;
+    }
+    if (value.toLowerCase() === "false") {
+        return false;
+    }
+    return undefined;
 }
 function getQueryString(value) {
     if (typeof value === "string" && value.trim() !== "") {
