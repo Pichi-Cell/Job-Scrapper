@@ -5,7 +5,7 @@ import { useJobs } from "../hooks/useJobs.js";
 import type { JobFilters } from "../types/jobs.js";
 
 const INITIAL_FILTERS: JobFilters = {
-  sources: ["ibm", "ey", "google", "accenture"],
+  sources: ["ibm", "ey", "google", "accenture", "stripe"],
   query: "",
   location: "Argentina",
   careerArea: "",
@@ -14,7 +14,9 @@ const INITIAL_FILTERS: JobFilters = {
   googleSkills: "Software",
   googleTargetLevel: "EARLY,MID,INTERN_AND_APPRENTICE",
   googleRemote: true,
-  accentureBusinessArea: "industry x",
+  accentureSkills: "software engineering",
+  accentureRemoteType: "",
+  accentureExperience: "",
   pageSize: 10,
 };
 

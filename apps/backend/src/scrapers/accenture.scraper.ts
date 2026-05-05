@@ -86,7 +86,6 @@ interface AccentureJob {
 function buildAccentureFormData(options: ScraperOptions): FormData {
   const pageSize = options.pageSize ?? DEFAULT_PAGE_SIZE;
   const startIndex = ((options.maxPages ?? 1) - 1) * pageSize;
-  const businessArea = options.businessArea ?? options.careerArea ?? DEFAULT_BUSINESS_AREA;
   const skill = normalizeAccentureSkill(
     options.query ?? options.skills ?? DEFAULT_KEYWORD,
   );
@@ -99,7 +98,7 @@ function buildAccentureFormData(options: ScraperOptions): FormData {
   formData.append("countrySite", "ar-es");
   formData.append(
     "jobFilters",
-    JSON.stringify(buildAccentureFilters(businessArea, skill)),
+    JSON.stringify(buildAccentureFilters(options, skill)),
   );
   formData.append("aggregations", JSON.stringify(ACCENTURE_AGGREGATIONS));
   formData.append("jobCountry", options.country ?? options.location ?? "Argentina");
@@ -109,7 +108,9 @@ function buildAccentureFormData(options: ScraperOptions): FormData {
   return formData;
 }
 
-function buildAccentureFilters(businessArea: string, skill: string): unknown[] {
+function buildAccentureFilters(options: ScraperOptions, skill: string): unknown[] {
+  const businessArea =
+    options.businessArea ?? options.careerArea ?? DEFAULT_BUSINESS_AREA;
   const filters = [
     {
       fieldName: "businessArea",
@@ -119,9 +120,36 @@ function buildAccentureFilters(businessArea: string, skill: string): unknown[] {
       fieldName: "skill",
       items: skill.trim() === "" ? [] : [skill],
     },
+    {
+      fieldName: "remoteType",
+      items: toFilterItems(options.remoteType),
+    },
+    {
+      fieldName: "yearsOfExperience",
+      items: toFilterItems(options.yearsOfExperience),
+    },
+    {
+      fieldName: "employeeType",
+      items: toFilterItems(options.employeeType),
+    },
+    {
+      fieldName: "specialization",
+      items: toFilterItems(options.specialization),
+    },
   ];
 
   return filters.filter((filter) => filter.items.length > 0);
+}
+
+function toFilterItems(value: string | undefined): string[] {
+  if (value === undefined) {
+    return [];
+  }
+
+  return value
+    .split(",")
+    .map((item) => item.trim())
+    .filter((item) => item !== "");
 }
 
 function normalizeAccentureSkill(value: string): string {

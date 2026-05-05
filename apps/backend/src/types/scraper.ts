@@ -11,6 +11,10 @@ export interface ScraperOptions {
   remote?: boolean;
   targetLevel?: string;
   businessArea?: string;
+  remoteType?: string;
+  yearsOfExperience?: string;
+  employeeType?: string;
+  specialization?: string;
   pageSize?: number;
   maxPages?: number;
 }

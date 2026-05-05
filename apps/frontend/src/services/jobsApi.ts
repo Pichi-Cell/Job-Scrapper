@@ -1,5 +1,7 @@
 import type { JobFilters, JobSource, SourceResult } from "../types/jobs.js";
 
+const ACCENTURE_BUSINESS_AREA = "industry x";
+
 interface ApiResponse<T> {
   data: T;
   error: string | null;
@@ -85,8 +87,10 @@ function buildSourceParams(source: JobSource, filters: JobFilters): URLSearchPar
   }
 
   if (source === "accenture") {
-    addParam(params, "skills", filters.query || filters.googleSkills);
-    addParam(params, "businessArea", filters.accentureBusinessArea);
+    addParam(params, "skills", filters.accentureSkills || filters.query);
+    addParam(params, "businessArea", ACCENTURE_BUSINESS_AREA);
+    addParam(params, "remoteType", filters.accentureRemoteType);
+    addParam(params, "yearsOfExperience", filters.accentureExperience);
   }
 
   return params;

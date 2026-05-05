@@ -1,6 +1,6 @@
 import type { JobListing } from "../../../../packages/shared/src/index.js";
 
-export type JobSource = "ibm" | "ey" | "google" | "accenture";
+export type JobSource = "ibm" | "ey" | "google" | "accenture" | "stripe";
 
 export interface JobFilters {
   sources: JobSource[];
@@ -12,7 +12,9 @@ export interface JobFilters {
   googleSkills: string;
   googleTargetLevel: string;
   googleRemote: boolean;
-  accentureBusinessArea: string;
+  accentureSkills: string;
+  accentureRemoteType: string;
+  accentureExperience: string;
   pageSize: number;
 }
 

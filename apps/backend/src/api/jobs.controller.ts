@@ -5,6 +5,7 @@ import {
   EyScraper,
   GoogleScraper,
   IbmTalentScraper,
+  StripeScraper,
 } from "../scrapers/index.js";
 import type { ScraperOptions } from "../types/scraper.js";
 import { fail, ok } from "./response.js";
@@ -13,6 +14,7 @@ const ibmTalentScraper = new IbmTalentScraper();
 const eyScraper = new EyScraper();
 const googleScraper = new GoogleScraper();
 const accentureScraper = new AccentureScraper();
+const stripeScraper = new StripeScraper();
 
 export async function handleJobsRequest(
   request: Request,
@@ -39,9 +41,7 @@ export async function handleJobsRequest(
   }
 }
 
-function getScraper(
-  source: string,
-): IbmTalentScraper | EyScraper | GoogleScraper | AccentureScraper | undefined {
+function getScraper(source: string): JobSourceScraper | undefined {
   const normalizedSource = source.toLowerCase();
 
   if (normalizedSource === "ibm") {
@@ -60,8 +60,19 @@ function getScraper(
     return accentureScraper;
   }
 
+  if (normalizedSource === "stripe") {
+    return stripeScraper;
+  }
+
   return undefined;
 }
+
+type JobSourceScraper =
+  | IbmTalentScraper
+  | EyScraper
+  | GoogleScraper
+  | AccentureScraper
+  | StripeScraper;
 
 function buildScraperOptions(request: Request): ScraperOptions {
   const options: ScraperOptions = {};
@@ -74,6 +85,10 @@ function buildScraperOptions(request: Request): ScraperOptions {
   const skills = getQueryString(request.query.skills);
   const targetLevel = getQueryString(request.query.targetLevel);
   const businessArea = getQueryString(request.query.businessArea);
+  const remoteType = getQueryString(request.query.remoteType);
+  const yearsOfExperience = getQueryString(request.query.yearsOfExperience);
+  const employeeType = getQueryString(request.query.employeeType);
+  const specialization = getQueryString(request.query.specialization);
   const remote = parseBoolean(getQueryString(request.query.remote));
   const pageSize = parsePositiveInteger(getQueryString(request.query.pageSize));
   const maxPages = parsePositiveInteger(getQueryString(request.query.maxPages));
@@ -112,6 +127,22 @@ function buildScraperOptions(request: Request): ScraperOptions {
 
   if (businessArea !== undefined) {
     options.businessArea = businessArea;
+  }
+
+  if (remoteType !== undefined) {
+    options.remoteType = remoteType;
+  }
+
+  if (yearsOfExperience !== undefined) {
+    options.yearsOfExperience = yearsOfExperience;
+  }
+
+  if (employeeType !== undefined) {
+    options.employeeType = employeeType;
+  }
+
+  if (specialization !== undefined) {
+    options.specialization = specialization;
   }
 
   if (remote !== undefined) {

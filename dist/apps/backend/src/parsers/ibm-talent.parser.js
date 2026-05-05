@@ -1,0 +1,91 @@
+const IBM_AVATURE_DETAIL_URL = "https://ibmglobal.avature.net/en_US/careers/JobDetail";
+export function parseIbmTalentSearchResponse(payload) {
+    const response = payload;
+    const parsedPage = {
+        jobs: (response.matchingJobs ?? [])
+            .map((matchingJob) => matchingJob.job)
+            .filter(isDefined)
+            .map(mapGoogleTalentJobToJobListing)
+            .filter(isDefined),
+    };
+    if (response.nextPageToken !== undefined) {
+        parsedPage.nextPageToken = response.nextPageToken;
+    }
+    return parsedPage;
+}
+function mapGoogleTalentJobToJobListing(job) {
+    const id = normalizeText(job.requisitionId) ?? parseJobIdFromName(job.name);
+    const title = normalizeText(job.title);
+    const company = normalizeText(job.companyDisplayName) ?? "IBM";
+    const url = getApplicationUrl(job, id);
+    if (id === undefined || title === undefined || url === undefined) {
+        return undefined;
+    }
+    const location = normalizeText(job.addresses?.join(", "));
+    const description = normalizeText(stripHtml(job.description));
+    const datePosted = normalizeIsoDate(job.postingPublishTime);
+    const remote = inferRemote(title, location, description);
+    const jobListing = {
+        id,
+        title,
+        company,
+        url,
+        source: "IBM Talent",
+    };
+    if (location !== undefined) {
+        jobListing.location = location;
+    }
+    if (remote !== undefined) {
+        jobListing.remote = remote;
+    }
+    if (description !== undefined) {
+        jobListing.description = description;
+    }
+    if (datePosted !== undefined) {
+        jobListing.datePosted = datePosted;
+    }
+    return jobListing;
+}
+function getApplicationUrl(job, id) {
+    const firstUri = job.applicationInfo?.uris?.find((uri) => uri.startsWith("http"));
+    if (firstUri !== undefined) {
+        return firstUri;
+    }
+    if (id === undefined) {
+        return undefined;
+    }
+    const detailUrl = new URL(IBM_AVATURE_DETAIL_URL);
+    detailUrl.searchParams.set("jobId", id);
+    detailUrl.searchParams.set("source", "WEB_Search");
+    return detailUrl.toString();
+}
+function parseJobIdFromName(name) {
+    if (name === undefined) {
+        return undefined;
+    }
+    return name.split("/").at(-1);
+}
+function normalizeText(value) {
+    const normalized = value?.replace(/\s+/g, " ").trim();
+    return normalized === "" ? undefined : normalized;
+}
+function normalizeIsoDate(value) {
+    if (value === undefined) {
+        return undefined;
+    }
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? undefined : date.toISOString();
+}
+function stripHtml(value) {
+    return value?.replace(/<[^>]*>/g, " ");
+}
+function inferRemote(title, location, description) {
+    const searchableText = [title, location, description].filter(isDefined).join(" ");
+    if (/\b(remote|remoto|home office|work from home)\b/i.test(searchableText)) {
+        return true;
+    }
+    return undefined;
+}
+function isDefined(value) {
+    return value !== undefined;
+}

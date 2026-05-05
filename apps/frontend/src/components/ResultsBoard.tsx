@@ -12,6 +12,7 @@ const SOURCE_LABELS: Record<string, string> = {
   ey: "EY",
   google: "Google",
   accenture: "Accenture",
+  stripe: "Stripe",
 };
 
 export function ResultsBoard({

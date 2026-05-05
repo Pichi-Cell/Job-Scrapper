@@ -73,6 +73,14 @@ export function FilterPanel({
           >
             Accenture
           </button>
+          <button
+            aria-pressed={filters.sources.includes("stripe")}
+            className="segment"
+            type="button"
+            onClick={() => toggleSource("stripe")}
+          >
+            Stripe
+          </button>
         </div>
 
         <button className="refresh-button" disabled={isLoading} type="submit">
@@ -170,10 +178,31 @@ export function FilterPanel({
         </label>
 
         <label>
-          <span>Accenture Area</span>
+          <span>Accenture Skill</span>
           <input
-            value={filters.accentureBusinessArea}
-            onChange={(event) => update("accentureBusinessArea", event.target.value)}
+            value={filters.accentureSkills}
+            onChange={(event) => update("accentureSkills", event.target.value)}
+          />
+        </label>
+
+        <label>
+          <span>Accenture Remote</span>
+          <select
+            value={filters.accentureRemoteType}
+            onChange={(event) => update("accentureRemoteType", event.target.value)}
+          >
+            <option value="">Any</option>
+            <option value="Remote">Remote</option>
+            <option value="Hybrid">Hybrid</option>
+            <option value="On-site">On-site</option>
+          </select>
+        </label>
+
+        <label>
+          <span>Accenture Experience</span>
+          <input
+            value={filters.accentureExperience}
+            onChange={(event) => update("accentureExperience", event.target.value)}
           />
         </label>
 
