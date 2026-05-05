@@ -1,53 +1,83 @@
-import type { IncomingMessage, ServerResponse } from "node:http";
+import type { Request, Response } from "express";
 import type { JobListing } from "../../../../packages/shared/src/index.js";
-import { IbmTalentScraper } from "../scrapers/index.js";
+import { EyScraper, IbmTalentScraper } from "../scrapers/index.js";
 import type { ScraperOptions } from "../types/scraper.js";
 import { fail, ok } from "./response.js";
 
 const ibmTalentScraper = new IbmTalentScraper();
+const eyScraper = new EyScraper();
 
 export async function handleJobsRequest(
-  request: IncomingMessage,
-  response: ServerResponse,
-  url: URL,
+  request: Request,
+  response: Response,
 ): Promise<void> {
-  if (request.method !== "GET") {
-    sendJson(response, 405, fail("Method not allowed"));
-    return;
-  }
+  const source = getQueryString(request.query.source) ?? "ibm";
+  const scraper = getScraper(source);
 
-  const source = url.searchParams.get("source") ?? "ibm";
-
-  if (source !== "ibm") {
-    sendJson(response, 400, fail(`Unsupported source: ${source}`));
+  if (scraper === undefined) {
+    response.status(400).json(fail(`Unsupported source: ${source}`));
     return;
   }
 
   try {
-    const result = await ibmTalentScraper.scrape(
-      buildScraperOptions(url.searchParams),
+    const result = await scraper.scrape(
+      buildScraperOptions(request),
     );
 
-    sendJson<JobListing[]>(response, 200, ok(result.jobs));
+    response.status(200).json(ok<JobListing[]>(result.jobs));
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown scraper error";
-    sendJson(response, 502, fail(message));
+    response.status(502).json(fail(message));
   }
 }
 
-function buildScraperOptions(searchParams: URLSearchParams): ScraperOptions {
-  const options: ScraperOptions = {};
-  const query = searchParams.get("query");
-  const location = searchParams.get("location");
-  const pageSize = parsePositiveInteger(searchParams.get("pageSize"));
-  const maxPages = parsePositiveInteger(searchParams.get("maxPages"));
+function getScraper(source: string): IbmTalentScraper | EyScraper | undefined {
+  const normalizedSource = source.toLowerCase();
 
-  if (query !== null) {
+  if (normalizedSource === "ibm") {
+    return ibmTalentScraper;
+  }
+
+  if (normalizedSource === "ey") {
+    return eyScraper;
+  }
+
+  return undefined;
+}
+
+function buildScraperOptions(request: Request): ScraperOptions {
+  const options: ScraperOptions = {};
+  const query = getQueryString(request.query.query);
+  const location = getQueryString(request.query.location);
+  const country = getQueryString(request.query.country);
+  const careerArea = getQueryString(request.query.careerArea);
+  const experienceLevel = getQueryString(request.query.experienceLevel);
+  const profile = getQueryString(request.query.profile);
+  const pageSize = parsePositiveInteger(getQueryString(request.query.pageSize));
+  const maxPages = parsePositiveInteger(getQueryString(request.query.maxPages));
+
+  if (query !== undefined) {
     options.query = query;
   }
 
-  if (location !== null) {
+  if (location !== undefined) {
     options.location = location;
+  }
+
+  if (country !== undefined) {
+    options.country = country;
+  }
+
+  if (careerArea !== undefined) {
+    options.careerArea = careerArea;
+  }
+
+  if (experienceLevel !== undefined) {
+    options.experienceLevel = experienceLevel;
+  }
+
+  if (profile !== undefined) {
+    options.profile = profile;
   }
 
   if (pageSize !== undefined) {
@@ -61,8 +91,8 @@ function buildScraperOptions(searchParams: URLSearchParams): ScraperOptions {
   return options;
 }
 
-function parsePositiveInteger(value: string | null): number | undefined {
-  if (value === null) {
+function parsePositiveInteger(value: string | undefined): number | undefined {
+  if (value === undefined) {
     return undefined;
   }
 
@@ -70,13 +100,10 @@ function parsePositiveInteger(value: string | null): number | undefined {
   return Number.isInteger(parsed) && parsed > 0 ? parsed : undefined;
 }
 
-function sendJson<T>(
-  response: ServerResponse,
-  statusCode: number,
-  payload: { data: T; error: string | null },
-): void {
-  response.writeHead(statusCode, {
-    "content-type": "application/json; charset=utf-8",
-  });
-  response.end(JSON.stringify(payload));
+function getQueryString(value: unknown): string | undefined {
+  if (typeof value === "string" && value.trim() !== "") {
+    return value;
+  }
+
+  return undefined;
 }

@@ -3,6 +3,10 @@ import type { JobListing } from "../../../../packages/shared/src/index.js";
 export interface ScraperOptions {
   query?: string;
   location?: string;
+  country?: string;
+  careerArea?: string;
+  experienceLevel?: string;
+  profile?: string;
   pageSize?: number;
   maxPages?: number;
 }

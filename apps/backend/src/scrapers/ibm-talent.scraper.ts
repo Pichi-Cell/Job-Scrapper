@@ -1,118 +1,224 @@
 import type { JobListing } from "../../../../packages/shared/src/index.js";
-import {
-  parseIbmTalentSearchResponse,
-  type ParsedIbmTalentPage,
-} from "../parsers/ibm-talent.parser.js";
 import type { JobScraper, ScraperOptions, ScraperResult } from "../types/scraper.js";
-import { fetchJson } from "../utils/http-client.js";
-import { DomainRateLimiter } from "../utils/rate-limit.js";
 
-const IBM_TALENT_SEARCH_ENDPOINT = "https://jobsapi-google.m-cloud.io/api/job/search";
-const IBM_COMPANY_NAME = "companies/728ae96b-0028-4d31-9697-9b42f37dd3f4";
-const DEFAULT_PAGE_SIZE = 25;
-const DEFAULT_MAX_PAGES = 3;
-const DEFAULT_DELAY_MS = 2_500;
+const IBM_SEARCH_API_URL = "https://www-api.ibm.com/search/api/v2";
+const IBM_CAREERS_URL_PREFIX = "https://careers.ibm.com";
+const DEFAULT_PAGE_SIZE = 30;
+
+const CAREER_AREAS: Record<string, string> = {
+  softwareengineering: "Software Engineering",
+};
+
+const EXPERIENCE_LEVELS: Record<string, string> = {
+  internship: "Internship",
+  intern: "Internship",
+  entrylevel: "Entry Level",
+  professional: "Professional",
+};
+
+const COUNTRIES: Record<string, string> = {
+  argentina: "Argentina",
+};
 
 export class IbmTalentScraper implements JobScraper {
   readonly source = "IBM Talent";
 
-  private readonly rateLimiter = new DomainRateLimiter(DEFAULT_DELAY_MS);
-
   async scrape(options: ScraperOptions = {}): Promise<ScraperResult> {
-    const pageSize = options.pageSize ?? DEFAULT_PAGE_SIZE;
-    const maxPages = options.maxPages ?? DEFAULT_MAX_PAGES;
-    const jobs: JobListing[] = [];
-    let pageToken: string | undefined;
+    const response = await fetch(IBM_SEARCH_API_URL, {
+      method: "POST",
+      headers: {
+        accept: "application/json",
+        "content-type": "application/json",
+        "user-agent": "JobScraper/0.1 (+respectful research scraper)",
+      },
+      body: JSON.stringify(buildIbmSearchPayload(options)),
+    });
 
-    for (let page = 1; page <= maxPages; page += 1) {
-      const url = buildIbmTalentSearchUrl(
-        buildIbmTalentSearchUrlOptions(options, pageSize, pageToken),
-      );
-
-      const parsedPage = await fetchJson<unknown>(url, {
-        rateLimiter: this.rateLimiter,
-        retries: 3,
-      }).then(parseIbmTalentSearchResponse);
-
-      jobs.push(...parsedPage.jobs);
-      pageToken = parsedPage.nextPageToken;
-
-      if (pageToken === undefined) {
-        break;
-      }
+    if (!response.ok) {
+      throw new Error(`IBM search request failed with status ${response.status}`);
     }
 
+    const payload = (await response.json()) as IbmSearchResponse;
+
     return {
-      jobs: dedupeJobs(jobs),
+      jobs: mapIbmHitsToJobListings(payload.hits?.hits ?? []),
       source: this.source,
       collectedAt: new Date().toISOString(),
     };
   }
 }
 
-function buildIbmTalentSearchUrlOptions(
-  options: ScraperOptions,
-  pageSize: number,
-  pageToken: string | undefined,
-): BuildIbmTalentSearchUrlOptions {
-  const urlOptions: BuildIbmTalentSearchUrlOptions = {
-    pageSize,
+interface IbmSearchResponse {
+  hits?: {
+    hits?: IbmSearchHit[];
+  };
+}
+
+interface IbmSearchHit {
+  _id: string;
+  _source: {
+    url?: string;
+    title?: string;
+    description?: string;
+    field_keyword_05?: string;
+    field_keyword_08?: string;
+    field_keyword_17?: string;
+    field_keyword_18?: string;
+    field_keyword_19?: string;
+  };
+}
+
+interface IbmSearchPayload {
+  appId: "careers";
+  scopes: ["careers2"];
+  query: {
+    bool: {
+      must: [];
+    };
+  };
+  post_filter?: {
+    bool: {
+      must: IbmTermFilter[];
+    };
+  };
+  size: number;
+  sort: Array<Record<string, "asc" | "desc">>;
+  lang: "zz";
+  localeSelector: Record<string, never>;
+  sm: {
+    query: string;
+    lang: "zz";
+  };
+  _source: string[];
+}
+
+interface IbmTermFilter {
+  term: Record<string, string>;
+}
+
+function buildIbmSearchPayload(options: ScraperOptions): IbmSearchPayload {
+  const filters = buildIbmTermFilters(options);
+  const payload: IbmSearchPayload = {
+    appId: "careers",
+    scopes: ["careers2"],
+    query: {
+      bool: {
+        must: [],
+      },
+    },
+    size: options.pageSize ?? DEFAULT_PAGE_SIZE,
+    sort: [{ _score: "desc" }, { pageviews: "desc" }],
+    lang: "zz",
+    localeSelector: {},
+    sm: {
+      query: options.query ?? "",
+      lang: "zz",
+    },
+    _source: [
+      "_id",
+      "title",
+      "url",
+      "description",
+      "language",
+      "entitled",
+      "field_keyword_05",
+      "field_keyword_08",
+      "field_keyword_17",
+      "field_keyword_18",
+      "field_keyword_19",
+    ],
   };
 
-  if (options.query !== undefined) {
-    urlOptions.query = options.query;
+  if (filters.length > 0) {
+    payload.post_filter = {
+      bool: {
+        must: filters,
+      },
+    };
   }
 
-  if (options.location !== undefined) {
-    urlOptions.location = options.location;
-  }
-
-  if (pageToken !== undefined) {
-    urlOptions.pageToken = pageToken;
-  }
-
-  return urlOptions;
+  return payload;
 }
 
-interface BuildIbmTalentSearchUrlOptions {
-  query?: string;
-  location?: string;
-  pageSize: number;
-  pageToken?: string;
+function buildIbmTermFilters(options: ScraperOptions): IbmTermFilter[] {
+  const filters: IbmTermFilter[] = [];
+  const country = getMappedFilterValue(COUNTRIES, options.country ?? options.location);
+  const careerArea = getMappedFilterValue(CAREER_AREAS, options.careerArea);
+  const experienceLevel = getMappedFilterValue(
+    EXPERIENCE_LEVELS,
+    options.experienceLevel,
+  );
+
+  if (country !== undefined) {
+    filters.push({ term: { field_keyword_05: country } });
+  }
+
+  if (careerArea !== undefined) {
+    filters.push({ term: { field_keyword_08: careerArea } });
+  }
+
+  if (experienceLevel !== undefined) {
+    filters.push({ term: { field_keyword_18: experienceLevel } });
+  }
+
+  return filters;
 }
 
-function buildIbmTalentSearchUrl(options: BuildIbmTalentSearchUrlOptions): URL {
-  const url = new URL(IBM_TALENT_SEARCH_ENDPOINT);
-  url.searchParams.set("companyName", IBM_COMPANY_NAME);
-  url.searchParams.set("pageSize", String(options.pageSize));
-  url.searchParams.set("jobView", "JOB_VIEW_FULL");
+function mapIbmHitsToJobListings(hits: IbmSearchHit[]): JobListing[] {
+  return hits.map((hit) => {
+    const source = hit._source;
+    const url = normalizeIbmUrl(source.url);
+    const jobListing: JobListing = {
+      id: extractJobId(url) ?? hit._id,
+      title: source.title ?? "Untitled IBM role",
+      company: "IBM",
+      url,
+      source: "IBM Talent",
+    };
 
-  if (options.query !== undefined && options.query.trim() !== "") {
-    url.searchParams.set("query", options.query.trim());
-  }
-
-  if (options.location !== undefined && options.location.trim() !== "") {
-    url.searchParams.set("location", options.location.trim());
-  }
-
-  if (options.pageToken !== undefined) {
-    url.searchParams.set("pageToken", options.pageToken);
-  }
-
-  return url;
-}
-
-function dedupeJobs(jobs: JobListing[]): JobListing[] {
-  const seen = new Set<string>();
-
-  return jobs.filter((job) => {
-    const dedupeKey = job.url || job.id;
-
-    if (seen.has(dedupeKey)) {
-      return false;
+    if (source.field_keyword_19 !== undefined) {
+      jobListing.location = source.field_keyword_19;
     }
 
-    seen.add(dedupeKey);
-    return true;
+    if (source.description !== undefined) {
+      jobListing.description = source.description;
+    }
+
+    return jobListing;
   });
+}
+
+function getMappedFilterValue(
+  values: Record<string, string>,
+  value: string | undefined,
+): string | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  return values[normalizeFilterKey(value)] ?? value;
+}
+
+function normalizeIbmUrl(url: string | undefined): string {
+  if (url === undefined) {
+    return IBM_CAREERS_URL_PREFIX;
+  }
+
+  if (url.startsWith("http")) {
+    return url;
+  }
+
+  return `${IBM_CAREERS_URL_PREFIX}${url}`;
+}
+
+function extractJobId(url: string): string | undefined {
+  try {
+    return new URL(url).searchParams.get("jobId") ?? undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function normalizeFilterKey(value: string): string {
+  return value.replace(/[^a-z0-9]/gi, "").toLowerCase();
 }
