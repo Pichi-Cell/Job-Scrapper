@@ -1,0 +1,19 @@
+{
+  "name": "job-scraper",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev:backend": "npm run build && npm run start:backend",
+    "start:backend": "node dist/apps/backend/src/server.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.0"
+  }
+}

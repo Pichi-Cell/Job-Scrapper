@@ -1,0 +1,55 @@
+import { IbmTalentScraper } from "../scrapers/index.js";
+import { fail, ok } from "./response.js";
+const ibmTalentScraper = new IbmTalentScraper();
+export async function handleJobsRequest(request, response, url) {
+    if (request.method !== "GET") {
+        sendJson(response, 405, fail("Method not allowed"));
+        return;
+    }
+    const source = url.searchParams.get("source") ?? "ibm";
+    if (source !== "ibm") {
+        sendJson(response, 400, fail(`Unsupported source: ${source}`));
+        return;
+    }
+    try {
+        const result = await ibmTalentScraper.scrape(buildScraperOptions(url.searchParams));
+        sendJson(response, 200, ok(result.jobs));
+    }
+    catch (error) {
+        const message = error instanceof Error ? error.message : "Unknown scraper error";
+        sendJson(response, 502, fail(message));
+    }
+}
+function buildScraperOptions(searchParams) {
+    const options = {};
+    const query = searchParams.get("query");
+    const location = searchParams.get("location");
+    const pageSize = parsePositiveInteger(searchParams.get("pageSize"));
+    const maxPages = parsePositiveInteger(searchParams.get("maxPages"));
+    if (query !== null) {
+        options.query = query;
+    }
+    if (location !== null) {
+        options.location = location;
+    }
+    if (pageSize !== undefined) {
+        options.pageSize = pageSize;
+    }
+    if (maxPages !== undefined) {
+        options.maxPages = maxPages;
+    }
+    return options;
+}
+function parsePositiveInteger(value) {
+    if (value === null) {
+        return undefined;
+    }
+    const parsed = Number.parseInt(value, 10);
+    return Number.isInteger(parsed) && parsed > 0 ? parsed : undefined;
+}
+function sendJson(response, statusCode, payload) {
+    response.writeHead(statusCode, {
+        "content-type": "application/json; charset=utf-8",
+    });
+    response.end(JSON.stringify(payload));
+}

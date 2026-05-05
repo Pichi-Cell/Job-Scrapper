@@ -1,2 +1,1 @@
-export type { JobListing } from "./job-listing";
-
+export type { JobListing } from "./job-listing.js";
