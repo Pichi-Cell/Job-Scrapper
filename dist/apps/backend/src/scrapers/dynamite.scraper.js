@@ -62,7 +62,7 @@ function buildDynamiteSearchParams(options) {
         facetFilters: JSON.stringify(buildFacetFilters(options)),
         hitsPerPage: String(pageSize),
         page: "0",
-        query: options.query ?? options.skills ?? "",
+        query: buildSearchQuery(options),
         removeWordsIfNoResults: "lastWords",
     });
     return searchParams.toString();
@@ -72,11 +72,51 @@ function buildFacetFilters(options) {
         ["flags.isVisible:true"],
         ["flags.isBlocked:false"],
     ];
+    if (options.includeClosed !== true) {
+        filters.push([
+            "flags.isFinished:false",
+            "flags.isExpired:false",
+            "flags.isFulfilled:false",
+        ]);
+    }
+    if (options.hasPublicSalary === true) {
+        filters.push(["flags.hasPublicSalary:true"]);
+    }
+    const categoryFilter = getCategoryFilter(options.category ?? options.careerArea);
+    if (categoryFilter !== undefined) {
+        filters.push([categoryFilter]);
+    }
+    const skillFilters = getSkillFilters(options.skills);
+    if (skillFilters.length > 0) {
+        filters.push(skillFilters);
+    }
     const locationFilters = getLocationFilters(options.location ?? options.country);
     if (locationFilters.length > 0) {
         filters.push(locationFilters);
     }
     return filters;
+}
+function buildSearchQuery(options) {
+    return [options.query, options.skills]
+        .map((value) => value?.trim())
+        .filter(isNonEmptyString)
+        .join(" ");
+}
+function getCategoryFilter(category) {
+    if (category === undefined || category.trim() === "") {
+        return undefined;
+    }
+    return `categories.category.slug:${toSlug(category)}`;
+}
+function getSkillFilters(skills) {
+    if (skills === undefined || skills.trim() === "") {
+        return [];
+    }
+    return skills
+        .split(",")
+        .map((skill) => skill.trim())
+        .filter(isNonEmptyString)
+        .map((skill) => `skillSlugs:${toSlug(skill)}`);
 }
 function getLocationFilters(location) {
     if (location === undefined || location.trim() === "") {
@@ -90,4 +130,15 @@ function getLocationFilters(location) {
         return ["locationSlugs:latinamerica"];
     }
     return [`locationSlugs:${location.trim()}`];
+}
+function toSlug(value) {
+    return value
+        .trim()
+        .replace(/([a-z])([A-Z])/g, "$1-$2")
+        .replace(/[^a-z0-9]+/gi, "-")
+        .replace(/^-+|-+$/g, "")
+        .toLowerCase();
+}
+function isNonEmptyString(value) {
+    return value !== undefined && value !== "";
 }

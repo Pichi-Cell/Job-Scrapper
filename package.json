@@ -24,10 +24,12 @@
     "vite": "^8.0.10"
   },
   "dependencies": {
+    "@types/web-push": "^3.6.4",
     "cheerio": "^1.2.0",
     "express": "^5.2.1",
     "lucide-react": "^1.14.0",
     "react": "^19.2.5",
-    "react-dom": "^19.2.5"
+    "react-dom": "^19.2.5",
+    "web-push": "^3.6.7"
   }
 }

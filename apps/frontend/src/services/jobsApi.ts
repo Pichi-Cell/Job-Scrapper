@@ -2,6 +2,65 @@ import type { JobFilters, JobSource, SourceResult } from "../types/jobs.js";
 
 const ACCENTURE_BUSINESS_AREA = "industry x";
 
+interface AreaTranslation {
+  ibmCareerArea?: string;
+  skills?: string;
+  dynamiteCategory?: string;
+}
+
+const AREA_TRANSLATIONS: Record<string, AreaTranslation> = {
+  "software-engineering": {
+    ibmCareerArea: "Software Engineering",
+    skills: "software engineering",
+    dynamiteCategory: "development",
+  },
+  marketing: {
+    skills: "marketing",
+    dynamiteCategory: "marketing",
+  },
+  "customer-support": {
+    skills: "customer support",
+    dynamiteCategory: "customer-support",
+  },
+  sales: {
+    skills: "sales",
+    dynamiteCategory: "sales",
+  },
+  operations: {
+    skills: "operations",
+    dynamiteCategory: "operations",
+  },
+  product: {
+    skills: "product",
+    dynamiteCategory: "product",
+  },
+  design: {
+    skills: "design",
+    dynamiteCategory: "design",
+  },
+};
+
+const IBM_LEVELS: Record<string, string> = {
+  intern: "Internship",
+  entry: "Entry Level",
+  professional: "Professional",
+};
+
+const GOOGLE_TARGET_LEVELS: Record<string, string> = {
+  "early-mid-intern": "EARLY,MID,INTERN_AND_APPRENTICE",
+  intern: "INTERN_AND_APPRENTICE",
+  entry: "EARLY",
+  mid: "MID",
+  professional: "MID",
+};
+
+const ACCENTURE_EXPERIENCE_LEVELS: Record<string, string> = {
+  intern: "Internship",
+  entry: "Entry Level",
+  mid: "Experienced",
+  professional: "Experienced",
+};
+
 interface ApiResponse<T> {
   data: T;
   error: string | null;
@@ -61,7 +120,13 @@ async function fetchSource(
   }
 }
 
-function buildSourceParams(source: JobSource, filters: JobFilters): URLSearchParams {
+export function buildSourceParams(
+  source: JobSource,
+  filters: JobFilters,
+): URLSearchParams {
+  const area = translateArea(filters.area);
+  const skills = area.skills ?? filters.query;
+
   const params = new URLSearchParams({
     source,
     pageSize: String(filters.pageSize),
@@ -72,30 +137,30 @@ function buildSourceParams(source: JobSource, filters: JobFilters): URLSearchPar
 
   if (source === "ibm") {
     addParam(params, "country", filters.location);
-    addParam(params, "careerArea", filters.careerArea);
-    addParam(params, "experienceLevel", filters.experienceLevel);
+    addParam(params, "careerArea", area.ibmCareerArea);
+    addParam(params, "experienceLevel", IBM_LEVELS[filters.level]);
   }
 
   if (source === "ey") {
-    addParam(params, "profile", filters.eyProfile);
+    addParam(params, "profile", filters.profile);
   }
 
   if (source === "google") {
-    addParam(params, "skills", filters.googleSkills);
-    addParam(params, "targetLevel", filters.googleTargetLevel);
-    params.set("remote", String(filters.googleRemote));
+    addParam(params, "skills", skills);
+    addParam(params, "targetLevel", GOOGLE_TARGET_LEVELS[filters.level]);
+    params.set("remote", String(filters.remote));
   }
 
   if (source === "accenture") {
-    addParam(params, "skills", filters.accentureSkills || filters.query);
+    addParam(params, "skills", skills);
     addParam(params, "businessArea", ACCENTURE_BUSINESS_AREA);
-    addParam(params, "remoteType", filters.accentureRemoteType);
-    addParam(params, "yearsOfExperience", filters.accentureExperience);
+    addParam(params, "remoteType", filters.remote ? "Remote" : "");
+    addParam(params, "yearsOfExperience", ACCENTURE_EXPERIENCE_LEVELS[filters.level]);
   }
 
   if (source === "dynamite") {
-    addParam(params, "skills", filters.dynamiteSkills || filters.query);
-    addParam(params, "category", filters.dynamiteCategory);
+    addParam(params, "skills", skills);
+    addParam(params, "category", area.dynamiteCategory);
     params.set("hasPublicSalary", String(filters.dynamitePublicSalary));
     params.set("includeClosed", String(filters.dynamiteIncludeClosed));
   }
@@ -103,11 +168,27 @@ function buildSourceParams(source: JobSource, filters: JobFilters): URLSearchPar
   return params;
 }
 
+function translateArea(area: string): AreaTranslation {
+  if (area.trim() === "") {
+    return {};
+  }
+
+  return AREA_TRANSLATIONS[area] ?? {
+    ibmCareerArea: area,
+    skills: area,
+    dynamiteCategory: area,
+  };
+}
+
 function addParam(
   params: URLSearchParams,
   key: string,
-  value: string,
+  value: string | undefined,
 ): void {
+  if (value === undefined) {
+    return;
+  }
+
   if (value.trim() !== "") {
     params.set(key, value.trim());
   }

@@ -118,118 +118,13 @@ export function FilterPanel({
         </label>
 
         <label>
-          <span>IBM Area</span>
+          <span>Area</span>
           <select
-            value={filters.careerArea}
-            onChange={(event) => update("careerArea", event.target.value)}
+            value={filters.area}
+            onChange={(event) => update("area", event.target.value)}
           >
             <option value="">Any</option>
-            <option value="Software Engineering">Software Engineering</option>
-          </select>
-        </label>
-
-        <label>
-          <span>IBM Level</span>
-          <select
-            value={filters.experienceLevel}
-            onChange={(event) => update("experienceLevel", event.target.value)}
-          >
-            <option value="">Any</option>
-            <option value="Internship">Internship</option>
-            <option value="Entry Level">Entry Level</option>
-            <option value="Professional">Professional</option>
-          </select>
-        </label>
-
-        <label>
-          <span>EY Profile</span>
-          <select
-            value={filters.eyProfile}
-            onChange={(event) => update("eyProfile", event.target.value)}
-          >
-            <option value="">Both</option>
-            <option value="students">Students</option>
-            <option value="experienced">Experienced</option>
-          </select>
-        </label>
-
-        <label>
-          <span>Google Skills</span>
-          <input
-            value={filters.googleSkills}
-            onChange={(event) => update("googleSkills", event.target.value)}
-          />
-        </label>
-
-        <label>
-          <span>Google Level</span>
-          <select
-            value={filters.googleTargetLevel}
-            onChange={(event) => update("googleTargetLevel", event.target.value)}
-          >
-            <option value="EARLY,MID,INTERN_AND_APPRENTICE">
-              Early, Mid, Intern
-            </option>
-            <option value="EARLY">Early</option>
-            <option value="MID">Mid</option>
-            <option value="INTERN_AND_APPRENTICE">Intern</option>
-          </select>
-        </label>
-
-        <label className="checkbox-row">
-          <input
-            checked={filters.googleRemote}
-            type="checkbox"
-            onChange={(event) => update("googleRemote", event.target.checked)}
-          />
-          <span>Google remote eligible</span>
-        </label>
-
-        <label>
-          <span>Accenture Skill</span>
-          <input
-            value={filters.accentureSkills}
-            onChange={(event) => update("accentureSkills", event.target.value)}
-          />
-        </label>
-
-        <label>
-          <span>Accenture Remote</span>
-          <select
-            value={filters.accentureRemoteType}
-            onChange={(event) => update("accentureRemoteType", event.target.value)}
-          >
-            <option value="">Any</option>
-            <option value="Remote">Remote</option>
-            <option value="Hybrid">Hybrid</option>
-            <option value="On-site">On-site</option>
-          </select>
-        </label>
-
-        <label>
-          <span>Accenture Experience</span>
-          <input
-            value={filters.accentureExperience}
-            onChange={(event) => update("accentureExperience", event.target.value)}
-          />
-        </label>
-
-        <label>
-          <span>Dynamite Skills</span>
-          <input
-            value={filters.dynamiteSkills}
-            onChange={(event) => update("dynamiteSkills", event.target.value)}
-          />
-        </label>
-
-        <label>
-          <span>Dynamite Category</span>
-          <select
-            value={filters.dynamiteCategory}
-            onChange={(event) => update("dynamiteCategory", event.target.value)}
-          >
-            <option value="">Any</option>
-            <option value="development">Developer / Engineer</option>
+            <option value="software-engineering">Software Engineering</option>
             <option value="marketing">Marketing</option>
             <option value="customer-support">Customer Support</option>
             <option value="sales">Sales</option>
@@ -237,6 +132,42 @@ export function FilterPanel({
             <option value="product">Product</option>
             <option value="design">Design</option>
           </select>
+        </label>
+
+        <label>
+          <span>Level</span>
+          <select
+            value={filters.level}
+            onChange={(event) => update("level", event.target.value)}
+          >
+            <option value="">Any</option>
+            <option value="early-mid-intern">Early, Mid, Intern</option>
+            <option value="intern">Intern</option>
+            <option value="entry">Entry</option>
+            <option value="mid">Mid</option>
+            <option value="professional">Professional</option>
+          </select>
+        </label>
+
+        <label>
+          <span>Profile</span>
+          <select
+            value={filters.profile}
+            onChange={(event) => update("profile", event.target.value)}
+          >
+            <option value="">Both</option>
+            <option value="students">Students</option>
+            <option value="experienced">Experienced</option>
+          </select>
+        </label>
+
+        <label className="checkbox-row">
+          <input
+            checked={filters.remote}
+            type="checkbox"
+            onChange={(event) => update("remote", event.target.checked)}
+          />
+          <span>Remote eligible</span>
         </label>
 
         <label className="checkbox-row">

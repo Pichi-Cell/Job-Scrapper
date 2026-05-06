@@ -1,85 +1,32 @@
 import type { Request, Response } from "express";
 import type { JobListing } from "../../../../packages/shared/src/index.js";
-import {
-  AccentureScraper,
-  DynamiteScraper,
-  EyScraper,
-  GoogleScraper,
-  IbmTalentScraper,
-  StripeScraper,
-} from "../scrapers/index.js";
 import type { ScraperOptions } from "../types/scraper.js";
+import { isSupportedSource, searchSource } from "../services/job-search.service.js";
 import { fail, ok } from "./response.js";
-
-const ibmTalentScraper = new IbmTalentScraper();
-const eyScraper = new EyScraper();
-const googleScraper = new GoogleScraper();
-const accentureScraper = new AccentureScraper();
-const stripeScraper = new StripeScraper();
-const dynamiteScraper = new DynamiteScraper();
 
 export async function handleJobsRequest(
   request: Request,
   response: Response,
 ): Promise<void> {
   const source = getQueryString(request.query.source) ?? "ibm";
-  const scraper = getScraper(source);
 
-  if (scraper === undefined) {
+  if (!isSupportedSource(source)) {
     response.status(400).json(fail(`Unsupported source: ${source}`));
     return;
   }
 
-  try {
-    const result = await scraper.scrape(
-      buildScraperOptions(request),
-    );
+  const result = await searchSource({
+    source,
+    options: buildScraperOptions(request),
+  });
 
-    response.status(200).json(ok<JobListing[]>(result.jobs));
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown scraper error";
-    console.error(`[scraper:${source}] ${message}`, error);
-    response.status(502).json(fail(message));
+  if (result.error !== null) {
+    response.status(502).json(fail(result.error));
+    return;
   }
+
+  response.status(200).json(ok<JobListing[]>(result.jobs));
 }
-
-function getScraper(source: string): JobSourceScraper | undefined {
-  const normalizedSource = source.toLowerCase();
-
-  if (normalizedSource === "ibm") {
-    return ibmTalentScraper;
-  }
-
-  if (normalizedSource === "ey") {
-    return eyScraper;
-  }
-
-  if (normalizedSource === "google") {
-    return googleScraper;
-  }
-
-  if (normalizedSource === "accenture") {
-    return accentureScraper;
-  }
-
-  if (normalizedSource === "stripe") {
-    return stripeScraper;
-  }
-
-  if (normalizedSource === "dynamite") {
-    return dynamiteScraper;
-  }
-
-  return undefined;
-}
-
-type JobSourceScraper =
-  | IbmTalentScraper
-  | EyScraper
-  | GoogleScraper
-  | AccentureScraper
-  | StripeScraper
-  | DynamiteScraper;
 
 function buildScraperOptions(request: Request): ScraperOptions {
   const options: ScraperOptions = {};

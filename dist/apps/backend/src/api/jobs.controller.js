@@ -1,49 +1,20 @@
-import { AccentureScraper, DynamiteScraper, EyScraper, GoogleScraper, IbmTalentScraper, StripeScraper, } from "../scrapers/index.js";
+import { isSupportedSource, searchSource } from "../services/job-search.service.js";
 import { fail, ok } from "./response.js";
-const ibmTalentScraper = new IbmTalentScraper();
-const eyScraper = new EyScraper();
-const googleScraper = new GoogleScraper();
-const accentureScraper = new AccentureScraper();
-const stripeScraper = new StripeScraper();
-const dynamiteScraper = new DynamiteScraper();
 export async function handleJobsRequest(request, response) {
     const source = getQueryString(request.query.source) ?? "ibm";
-    const scraper = getScraper(source);
-    if (scraper === undefined) {
+    if (!isSupportedSource(source)) {
         response.status(400).json(fail(`Unsupported source: ${source}`));
         return;
     }
-    try {
-        const result = await scraper.scrape(buildScraperOptions(request));
-        response.status(200).json(ok(result.jobs));
+    const result = await searchSource({
+        source,
+        options: buildScraperOptions(request),
+    });
+    if (result.error !== null) {
+        response.status(502).json(fail(result.error));
+        return;
     }
-    catch (error) {
-        const message = error instanceof Error ? error.message : "Unknown scraper error";
-        console.error(`[scraper:${source}] ${message}`, error);
-        response.status(502).json(fail(message));
-    }
-}
-function getScraper(source) {
-    const normalizedSource = source.toLowerCase();
-    if (normalizedSource === "ibm") {
-        return ibmTalentScraper;
-    }
-    if (normalizedSource === "ey") {
-        return eyScraper;
-    }
-    if (normalizedSource === "google") {
-        return googleScraper;
-    }
-    if (normalizedSource === "accenture") {
-        return accentureScraper;
-    }
-    if (normalizedSource === "stripe") {
-        return stripeScraper;
-    }
-    if (normalizedSource === "dynamite") {
-        return dynamiteScraper;
-    }
-    return undefined;
+    response.status(200).json(ok(result.jobs));
 }
 function buildScraperOptions(request) {
     const options = {};
@@ -60,7 +31,10 @@ function buildScraperOptions(request) {
     const yearsOfExperience = getQueryString(request.query.yearsOfExperience);
     const employeeType = getQueryString(request.query.employeeType);
     const specialization = getQueryString(request.query.specialization);
+    const category = getQueryString(request.query.category);
     const remote = parseBoolean(getQueryString(request.query.remote));
+    const hasPublicSalary = parseBoolean(getQueryString(request.query.hasPublicSalary));
+    const includeClosed = parseBoolean(getQueryString(request.query.includeClosed));
     const pageSize = parsePositiveInteger(getQueryString(request.query.pageSize));
     const maxPages = parsePositiveInteger(getQueryString(request.query.maxPages));
     if (query !== undefined) {
@@ -102,8 +76,17 @@ function buildScraperOptions(request) {
     if (specialization !== undefined) {
         options.specialization = specialization;
     }
+    if (category !== undefined) {
+        options.category = category;
+    }
     if (remote !== undefined) {
         options.remote = remote;
+    }
+    if (hasPublicSalary !== undefined) {
+        options.hasPublicSalary = hasPublicSalary;
+    }
+    if (includeClosed !== undefined) {
+        options.includeClosed = includeClosed;
     }
     if (pageSize !== undefined) {
         options.pageSize = pageSize;

@@ -27,11 +27,17 @@ select {
   grid-template-columns: minmax(280px, 360px) 1fr;
 }
 
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #d9dee5;
+  background: #ffffff;
+}
+
 .filters {
   display: flex;
   flex-direction: column;
   gap: 22px;
-  border-right: 1px solid #d9dee5;
   background: #ffffff;
   padding: 24px;
 }
@@ -252,6 +258,113 @@ select {
   color: #3d4852;
   font-size: 0.82rem;
   line-height: 1.45;
+}
+
+.alerts-panel {
+  display: grid;
+  gap: 14px;
+  border-top: 1px solid #d9dee5;
+  padding: 20px 24px 24px;
+}
+
+.alerts-panel header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.alerts-panel h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.alerts-panel p {
+  margin: 4px 0 0;
+  color: #52606d;
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.icon-button {
+  display: inline-grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border: 1px solid #b8c1cc;
+  background: #ffffff;
+  color: #334155;
+  cursor: pointer;
+}
+
+.alert-create {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+}
+
+.alert-create input {
+  min-width: 0;
+  min-height: 40px;
+  border: 1px solid #b8c1cc;
+  padding: 0 10px;
+}
+
+.alert-create button {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  gap: 7px;
+  border: 0;
+  background: #2f855a;
+  color: #ffffff;
+  padding: 0 12px;
+  cursor: pointer;
+}
+
+.alert-error {
+  color: #9b1c1c !important;
+}
+
+.alert-list,
+.notification-list {
+  display: grid;
+  gap: 8px;
+}
+
+.alert-item,
+.notification-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: 1px solid #d9dee5;
+  padding: 10px;
+}
+
+.alert-item div,
+.notification-item {
+  min-width: 0;
+}
+
+.alert-item strong,
+.notification-item strong,
+.alert-item span,
+.notification-item span,
+.alert-item small {
+  display: block;
+}
+
+.alert-item strong,
+.notification-item strong {
+  overflow-wrap: anywhere;
+}
+
+.alert-item span,
+.notification-item span,
+.alert-item small {
+  color: #52606d;
+  font-size: 0.78rem;
 }
 
 @media (max-width: 900px) {

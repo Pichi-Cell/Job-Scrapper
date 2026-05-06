@@ -1,0 +1,10 @@
+import { Router } from "express";
+import { handleAlertsList, handleCreateAlert, handleDeleteAlert, handleNotificationsList, handlePushPublicKey, handlePushSubscription, handleRunAlert, } from "../api/alerts.controller.js";
+export const alertsRouter = Router();
+alertsRouter.get("/", handleAlertsList);
+alertsRouter.post("/", handleCreateAlert);
+alertsRouter.get("/notifications", handleNotificationsList);
+alertsRouter.get("/push-public-key", handlePushPublicKey);
+alertsRouter.post("/push-subscriptions", handlePushSubscription);
+alertsRouter.delete("/:id", handleDeleteAlert);
+alertsRouter.post("/:id/run", handleRunAlert);
