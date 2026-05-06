@@ -81,6 +81,14 @@ export function FilterPanel({
           >
             Stripe
           </button>
+          <button
+            aria-pressed={filters.sources.includes("dynamite")}
+            className="segment"
+            type="button"
+            onClick={() => toggleSource("dynamite")}
+          >
+            Dynamite
+          </button>
         </div>
 
         <button className="refresh-button" disabled={isLoading} type="submit">
@@ -204,6 +212,53 @@ export function FilterPanel({
             value={filters.accentureExperience}
             onChange={(event) => update("accentureExperience", event.target.value)}
           />
+        </label>
+
+        <label>
+          <span>Dynamite Skills</span>
+          <input
+            value={filters.dynamiteSkills}
+            onChange={(event) => update("dynamiteSkills", event.target.value)}
+          />
+        </label>
+
+        <label>
+          <span>Dynamite Category</span>
+          <select
+            value={filters.dynamiteCategory}
+            onChange={(event) => update("dynamiteCategory", event.target.value)}
+          >
+            <option value="">Any</option>
+            <option value="development">Developer / Engineer</option>
+            <option value="marketing">Marketing</option>
+            <option value="customer-support">Customer Support</option>
+            <option value="sales">Sales</option>
+            <option value="operations">Operations</option>
+            <option value="product">Product</option>
+            <option value="design">Design</option>
+          </select>
+        </label>
+
+        <label className="checkbox-row">
+          <input
+            checked={filters.dynamitePublicSalary}
+            type="checkbox"
+            onChange={(event) =>
+              update("dynamitePublicSalary", event.target.checked)
+            }
+          />
+          <span>Dynamite public salary</span>
+        </label>
+
+        <label className="checkbox-row">
+          <input
+            checked={filters.dynamiteIncludeClosed}
+            type="checkbox"
+            onChange={(event) =>
+              update("dynamiteIncludeClosed", event.target.checked)
+            }
+          />
+          <span>Dynamite include closed</span>
         </label>
 
         <label>

@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import type { JobListing } from "../../../../packages/shared/src/index.js";
 import {
   AccentureScraper,
+  DynamiteScraper,
   EyScraper,
   GoogleScraper,
   IbmTalentScraper,
@@ -15,6 +16,7 @@ const eyScraper = new EyScraper();
 const googleScraper = new GoogleScraper();
 const accentureScraper = new AccentureScraper();
 const stripeScraper = new StripeScraper();
+const dynamiteScraper = new DynamiteScraper();
 
 export async function handleJobsRequest(
   request: Request,
@@ -64,6 +66,10 @@ function getScraper(source: string): JobSourceScraper | undefined {
     return stripeScraper;
   }
 
+  if (normalizedSource === "dynamite") {
+    return dynamiteScraper;
+  }
+
   return undefined;
 }
 
@@ -72,7 +78,8 @@ type JobSourceScraper =
   | EyScraper
   | GoogleScraper
   | AccentureScraper
-  | StripeScraper;
+  | StripeScraper
+  | DynamiteScraper;
 
 function buildScraperOptions(request: Request): ScraperOptions {
   const options: ScraperOptions = {};
@@ -89,7 +96,12 @@ function buildScraperOptions(request: Request): ScraperOptions {
   const yearsOfExperience = getQueryString(request.query.yearsOfExperience);
   const employeeType = getQueryString(request.query.employeeType);
   const specialization = getQueryString(request.query.specialization);
+  const category = getQueryString(request.query.category);
   const remote = parseBoolean(getQueryString(request.query.remote));
+  const hasPublicSalary = parseBoolean(
+    getQueryString(request.query.hasPublicSalary),
+  );
+  const includeClosed = parseBoolean(getQueryString(request.query.includeClosed));
   const pageSize = parsePositiveInteger(getQueryString(request.query.pageSize));
   const maxPages = parsePositiveInteger(getQueryString(request.query.maxPages));
 
@@ -145,8 +157,20 @@ function buildScraperOptions(request: Request): ScraperOptions {
     options.specialization = specialization;
   }
 
+  if (category !== undefined) {
+    options.category = category;
+  }
+
   if (remote !== undefined) {
     options.remote = remote;
+  }
+
+  if (hasPublicSalary !== undefined) {
+    options.hasPublicSalary = hasPublicSalary;
+  }
+
+  if (includeClosed !== undefined) {
+    options.includeClosed = includeClosed;
   }
 
   if (pageSize !== undefined) {

@@ -93,6 +93,13 @@ function buildSourceParams(source: JobSource, filters: JobFilters): URLSearchPar
     addParam(params, "yearsOfExperience", filters.accentureExperience);
   }
 
+  if (source === "dynamite") {
+    addParam(params, "skills", filters.dynamiteSkills || filters.query);
+    addParam(params, "category", filters.dynamiteCategory);
+    params.set("hasPublicSalary", String(filters.dynamitePublicSalary));
+    params.set("includeClosed", String(filters.dynamiteIncludeClosed));
+  }
+
   return params;
 }
 

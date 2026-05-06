@@ -4,7 +4,7 @@ import { FilterPanel } from "../components/FilterPanel.js";
 import { ResultsBoard } from "../components/ResultsBoard.js";
 import { useJobs } from "../hooks/useJobs.js";
 const INITIAL_FILTERS = {
-    sources: ["ibm", "ey", "google", "accenture", "stripe"],
+    sources: ["ibm", "ey", "google", "accenture", "stripe", "dynamite"],
     query: "",
     location: "Argentina",
     careerArea: "",

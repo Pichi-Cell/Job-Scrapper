@@ -5,7 +5,7 @@ import { useJobs } from "../hooks/useJobs.js";
 import type { JobFilters } from "../types/jobs.js";
 
 const INITIAL_FILTERS: JobFilters = {
-  sources: ["ibm", "ey", "google", "accenture", "stripe"],
+  sources: ["ibm", "ey", "google", "accenture", "stripe", "dynamite"],
   query: "",
   location: "Argentina",
   careerArea: "",
@@ -17,6 +17,10 @@ const INITIAL_FILTERS: JobFilters = {
   accentureSkills: "software engineering",
   accentureRemoteType: "",
   accentureExperience: "",
+  dynamiteSkills: "software engineering",
+  dynamiteCategory: "development",
+  dynamitePublicSalary: false,
+  dynamiteIncludeClosed: false,
   pageSize: 10,
 };
 

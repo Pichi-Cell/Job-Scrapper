@@ -1,10 +1,11 @@
-import { AccentureScraper, EyScraper, GoogleScraper, IbmTalentScraper, StripeScraper, } from "../scrapers/index.js";
+import { AccentureScraper, DynamiteScraper, EyScraper, GoogleScraper, IbmTalentScraper, StripeScraper, } from "../scrapers/index.js";
 import { fail, ok } from "./response.js";
 const ibmTalentScraper = new IbmTalentScraper();
 const eyScraper = new EyScraper();
 const googleScraper = new GoogleScraper();
 const accentureScraper = new AccentureScraper();
 const stripeScraper = new StripeScraper();
+const dynamiteScraper = new DynamiteScraper();
 export async function handleJobsRequest(request, response) {
     const source = getQueryString(request.query.source) ?? "ibm";
     const scraper = getScraper(source);
@@ -38,6 +39,9 @@ function getScraper(source) {
     }
     if (normalizedSource === "stripe") {
         return stripeScraper;
+    }
+    if (normalizedSource === "dynamite") {
+        return dynamiteScraper;
     }
     return undefined;
 }

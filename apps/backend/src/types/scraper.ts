@@ -15,6 +15,9 @@ export interface ScraperOptions {
   yearsOfExperience?: string;
   employeeType?: string;
   specialization?: string;
+  category?: string;
+  hasPublicSalary?: boolean;
+  includeClosed?: boolean;
   pageSize?: number;
   maxPages?: number;
 }

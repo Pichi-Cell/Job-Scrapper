@@ -1,6 +1,12 @@
 import type { JobListing } from "../../../../packages/shared/src/index.js";
 
-export type JobSource = "ibm" | "ey" | "google" | "accenture" | "stripe";
+export type JobSource =
+  | "ibm"
+  | "ey"
+  | "google"
+  | "accenture"
+  | "stripe"
+  | "dynamite";
 
 export interface JobFilters {
   sources: JobSource[];
@@ -15,6 +21,10 @@ export interface JobFilters {
   accentureSkills: string;
   accentureRemoteType: string;
   accentureExperience: string;
+  dynamiteSkills: string;
+  dynamiteCategory: string;
+  dynamitePublicSalary: boolean;
+  dynamiteIncludeClosed: boolean;
   pageSize: number;
 }
 

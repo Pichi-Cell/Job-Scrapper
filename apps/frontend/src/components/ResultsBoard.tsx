@@ -13,6 +13,7 @@ const SOURCE_LABELS: Record<string, string> = {
   google: "Google",
   accenture: "Accenture",
   stripe: "Stripe",
+  dynamite: "Dynamite Jobs",
 };
 
 export function ResultsBoard({
