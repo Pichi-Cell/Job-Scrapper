@@ -1,4 +1,5 @@
 export { AccentureScraper } from "./accenture.scraper.js";
+export { BumeranScraper } from "./bumeran.scraper.js";
 export { DynamiteScraper } from "./dynamite.scraper.js";
 export { EyScraper } from "./ey.scraper.js";
 export { GoogleScraper } from "./google.scraper.js";

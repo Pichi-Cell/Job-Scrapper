@@ -7,6 +7,7 @@ const SOURCE_LABELS = {
     accenture: "Accenture",
     stripe: "Stripe",
     dynamite: "Dynamite Jobs",
+    bumeran: "Bumeran",
 };
 export function ResultsBoard({ results, isLoading, lastUpdated, }) {
     const total = results.reduce((sum, result) => sum + result.jobs.length, 0);

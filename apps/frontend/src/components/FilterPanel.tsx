@@ -89,6 +89,14 @@ export function FilterPanel({
           >
             Dynamite
           </button>
+          <button
+            aria-pressed={filters.sources.includes("bumeran")}
+            className="segment"
+            type="button"
+            onClick={() => toggleSource("bumeran")}
+          >
+            Bumeran
+          </button>
         </div>
 
         <button className="refresh-button" disabled={isLoading} type="submit">

@@ -1,10 +1,11 @@
-import { AccentureScraper, DynamiteScraper, EyScraper, GoogleScraper, IbmTalentScraper, StripeScraper, } from "../scrapers/index.js";
+import { AccentureScraper, BumeranScraper, DynamiteScraper, EyScraper, GoogleScraper, IbmTalentScraper, StripeScraper, } from "../scrapers/index.js";
 const ibmTalentScraper = new IbmTalentScraper();
 const eyScraper = new EyScraper();
 const googleScraper = new GoogleScraper();
 const accentureScraper = new AccentureScraper();
 const stripeScraper = new StripeScraper();
 const dynamiteScraper = new DynamiteScraper();
+const bumeranScraper = new BumeranScraper();
 export async function searchSource(request) {
     const scraper = getScraper(request.source);
     if (scraper === undefined) {
@@ -57,6 +58,9 @@ function getScraper(source) {
     }
     if (normalizedSource === "dynamite") {
         return dynamiteScraper;
+    }
+    if (normalizedSource === "bumeran") {
+        return bumeranScraper;
     }
     return undefined;
 }

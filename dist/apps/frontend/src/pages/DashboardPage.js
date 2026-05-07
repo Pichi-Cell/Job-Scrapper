@@ -6,7 +6,7 @@ import { ResultsBoard } from "../components/ResultsBoard.js";
 import { useAlerts } from "../hooks/useAlerts.js";
 import { useJobs } from "../hooks/useJobs.js";
 const INITIAL_FILTERS = {
-    sources: ["ibm", "ey", "google", "accenture", "stripe", "dynamite"],
+    sources: ["ibm", "ey", "google", "accenture", "stripe", "dynamite", "bumeran"],
     query: "",
     location: "Argentina",
     area: "software-engineering",

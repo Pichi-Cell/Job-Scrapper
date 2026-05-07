@@ -1,6 +1,7 @@
 import type { JobListing } from "../../../../packages/shared/src/index.js";
 import {
   AccentureScraper,
+  BumeranScraper,
   DynamiteScraper,
   EyScraper,
   GoogleScraper,
@@ -15,6 +16,7 @@ const googleScraper = new GoogleScraper();
 const accentureScraper = new AccentureScraper();
 const stripeScraper = new StripeScraper();
 const dynamiteScraper = new DynamiteScraper();
+const bumeranScraper = new BumeranScraper();
 
 export type JobSource =
   | "ibm"
@@ -22,7 +24,8 @@ export type JobSource =
   | "google"
   | "accenture"
   | "stripe"
-  | "dynamite";
+  | "dynamite"
+  | "bumeran";
 
 export interface SourceSearchRequest {
   source: JobSource;
@@ -105,6 +108,10 @@ function getScraper(source: string): JobSourceScraper | undefined {
     return dynamiteScraper;
   }
 
+  if (normalizedSource === "bumeran") {
+    return bumeranScraper;
+  }
+
   return undefined;
 }
 
@@ -114,4 +121,5 @@ type JobSourceScraper =
   | GoogleScraper
   | AccentureScraper
   | StripeScraper
-  | DynamiteScraper;
+  | DynamiteScraper
+  | BumeranScraper;

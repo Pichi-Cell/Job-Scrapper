@@ -14,6 +14,7 @@ const SOURCE_LABELS: Record<string, string> = {
   accenture: "Accenture",
   stripe: "Stripe",
   dynamite: "Dynamite Jobs",
+  bumeran: "Bumeran",
 };
 
 export function ResultsBoard({
