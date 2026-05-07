@@ -1,7 +1,14 @@
 import type { Request, Response } from "express";
 import type { JobListing } from "../../../../packages/shared/src/index.js";
 import type { ScraperOptions } from "../types/scraper.js";
-import { isSupportedSource, searchSource } from "../services/job-search.service.js";
+import {
+  getAgentJobPreset,
+  searchAgentJobPreset,
+} from "../services/agent-preset.service.js";
+import {
+  isSupportedSource,
+  searchSource,
+} from "../services/job-search.service.js";
 import { fail, ok } from "./response.js";
 
 export async function handleJobsRequest(
@@ -26,6 +33,29 @@ export async function handleJobsRequest(
   }
 
   response.status(200).json(ok<JobListing[]>(result.jobs));
+}
+
+export async function handleAgentPresetJobsRequest(
+  request: Request,
+  response: Response,
+): Promise<void> {
+  const presetName = getQueryString(request.params.preset);
+  const preset = getAgentJobPreset(presetName);
+
+  if (preset === undefined) {
+    response.status(404).json(fail(`Unsupported job preset: ${presetName ?? ""}`));
+    return;
+  }
+
+  try {
+    response
+      .status(200)
+      .json(ok(await searchAgentJobPreset(preset.id, getQueryString(request.query.source))));
+  } catch (error) {
+    response
+      .status(400)
+      .json(fail(error instanceof Error ? error.message : "Unknown preset error"));
+  }
 }
 
 function buildScraperOptions(request: Request): ScraperOptions {

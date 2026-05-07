@@ -82,6 +82,10 @@ function getTargetLevels(options: ScraperOptions): string[] {
     return DEFAULT_TARGET_LEVELS;
   }
 
+  if (normalizeFilterKey(configuredLevel) === "all") {
+    return [];
+  }
+
   const levels = configuredLevel
     .split(",")
     .map((level) => level.trim())

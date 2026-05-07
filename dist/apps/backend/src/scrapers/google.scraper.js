@@ -55,6 +55,9 @@ function getTargetLevels(options) {
     if (configuredLevel === undefined) {
         return DEFAULT_TARGET_LEVELS;
     }
+    if (normalizeFilterKey(configuredLevel) === "all") {
+        return [];
+    }
     const levels = configuredLevel
         .split(",")
         .map((level) => level.trim())

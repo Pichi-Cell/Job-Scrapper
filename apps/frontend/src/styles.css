@@ -21,9 +21,37 @@ select {
   font: inherit;
 }
 
+.app-nav {
+  display: flex;
+  min-height: 56px;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid #d9dee5;
+  background: #ffffff;
+  padding: 0 18px;
+}
+
+.app-nav button {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #b8c1cc;
+  background: #ffffff;
+  color: #334155;
+  padding: 0 12px;
+  cursor: pointer;
+}
+
+.app-nav button[aria-pressed="true"] {
+  border-color: #22324a;
+  background: #22324a;
+  color: #ffffff;
+}
+
 .app-shell {
   display: grid;
-  min-height: 100vh;
+  min-height: calc(100vh - 56px);
   grid-template-columns: minmax(280px, 360px) 1fr;
 }
 
@@ -367,9 +395,83 @@ select {
   font-size: 0.78rem;
 }
 
+.preset-shell {
+  display: grid;
+  gap: 18px;
+  min-height: calc(100vh - 56px);
+  align-content: start;
+  padding: 28px;
+}
+
+.preset-toolbar {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.preset-toolbar h1 {
+  margin: 0;
+  font-size: 1.65rem;
+  line-height: 1.2;
+}
+
+.preset-toolbar p {
+  margin: 5px 0 0;
+  color: #52606d;
+  overflow-wrap: anywhere;
+}
+
+.preset-tabs {
+  display: grid;
+  overflow: hidden;
+  grid-template-columns: repeat(4, minmax(96px, 1fr));
+  max-width: 680px;
+  border: 1px solid #b8c1cc;
+}
+
+.preset-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  color: #52606d;
+  font-size: 0.9rem;
+}
+
+.preset-meta span {
+  border: 1px solid #d9dee5;
+  background: #ffffff;
+  padding: 7px 10px;
+}
+
+.preset-meta span:first-child {
+  color: #276749;
+  font-weight: 700;
+}
+
+.preset-meta span[data-loading="true"] {
+  color: #9a6700;
+}
+
+.preset-error {
+  margin-top: 0;
+}
+
+.preset-source-errors {
+  display: grid;
+  gap: 8px;
+}
+
+.preset-results {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
 @media (max-width: 900px) {
   .app-shell,
-  .source-columns {
+  .source-columns,
+  .preset-results {
     grid-template-columns: 1fr;
   }
 
@@ -381,5 +483,15 @@ select {
   .results-summary {
     align-items: start;
     flex-direction: column;
+  }
+
+  .preset-toolbar {
+    align-items: start;
+    flex-direction: column;
+  }
+
+  .preset-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-width: none;
   }
 }

@@ -27,6 +27,16 @@ export type JobSource =
   | "dynamite"
   | "bumeran";
 
+export const JOB_SOURCES: JobSource[] = [
+  "ibm",
+  "ey",
+  "google",
+  "accenture",
+  "stripe",
+  "dynamite",
+  "bumeran",
+];
+
 export interface SourceSearchRequest {
   source: JobSource;
   options: ScraperOptions;

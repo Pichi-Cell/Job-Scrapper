@@ -6,6 +6,15 @@ const accentureScraper = new AccentureScraper();
 const stripeScraper = new StripeScraper();
 const dynamiteScraper = new DynamiteScraper();
 const bumeranScraper = new BumeranScraper();
+export const JOB_SOURCES = [
+    "ibm",
+    "ey",
+    "google",
+    "accenture",
+    "stripe",
+    "dynamite",
+    "bumeran",
+];
 export async function searchSource(request) {
     const scraper = getScraper(request.source);
     if (scraper === undefined) {

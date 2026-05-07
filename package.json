@@ -11,6 +11,7 @@
     "build:frontend": "vite build --config apps/frontend/vite.config.ts",
     "dev:backend": "npm run build && npm run start:backend",
     "dev:frontend": "vite --config apps/frontend/vite.config.ts",
+    "start:mcp": "node dist/apps/backend/src/mcp/server.js",
     "start:backend": "node dist/apps/backend/src/server.js",
     "typecheck": "tsc --noEmit"
   },
