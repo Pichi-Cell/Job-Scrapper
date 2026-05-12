@@ -8,6 +8,8 @@ const SOURCE_LABELS = {
     stripe: "Stripe",
     dynamite: "Dynamite Jobs",
     bumeran: "Bumeran",
+    linkedin: "LinkedIn",
+    wellfound: "Wellfound",
 };
 export function ResultsBoard({ results, isLoading, lastUpdated, }) {
     const total = results.reduce((sum, result) => sum + result.jobs.length, 0);

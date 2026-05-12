@@ -97,6 +97,22 @@ export function FilterPanel({
           >
             Bumeran
           </button>
+          <button
+            aria-pressed={filters.sources.includes("linkedin")}
+            className="segment"
+            type="button"
+            onClick={() => toggleSource("linkedin")}
+          >
+            LinkedIn
+          </button>
+          <button
+            aria-pressed={filters.sources.includes("wellfound")}
+            className="segment"
+            type="button"
+            onClick={() => toggleSource("wellfound")}
+          >
+            Wellfound
+          </button>
         </div>
 
         <button className="refresh-button" disabled={isLoading} type="submit">

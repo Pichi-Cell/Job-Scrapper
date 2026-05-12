@@ -7,7 +7,17 @@ import { useJobs } from "../hooks/useJobs.js";
 import type { JobFilters } from "../types/jobs.js";
 
 const INITIAL_FILTERS: JobFilters = {
-  sources: ["ibm", "ey", "google", "accenture", "stripe", "dynamite", "bumeran"],
+  sources: [
+    "ibm",
+    "ey",
+    "google",
+    "accenture",
+    "stripe",
+    "dynamite",
+    "bumeran",
+    "linkedin",
+    "wellfound",
+  ],
   query: "",
   location: "Argentina",
   area: "software-engineering",

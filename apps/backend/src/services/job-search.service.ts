@@ -6,7 +6,9 @@ import {
   EyScraper,
   GoogleScraper,
   IbmTalentScraper,
+  LinkedInScraper,
   StripeScraper,
+  WellfoundScraper,
 } from "../scrapers/index.js";
 import type { ScraperOptions } from "../types/scraper.js";
 
@@ -17,6 +19,8 @@ const accentureScraper = new AccentureScraper();
 const stripeScraper = new StripeScraper();
 const dynamiteScraper = new DynamiteScraper();
 const bumeranScraper = new BumeranScraper();
+const linkedInScraper = new LinkedInScraper();
+const wellfoundScraper = new WellfoundScraper();
 
 export type JobSource =
   | "ibm"
@@ -25,7 +29,9 @@ export type JobSource =
   | "accenture"
   | "stripe"
   | "dynamite"
-  | "bumeran";
+  | "bumeran"
+  | "linkedin"
+  | "wellfound";
 
 export const JOB_SOURCES: JobSource[] = [
   "ibm",
@@ -35,6 +41,8 @@ export const JOB_SOURCES: JobSource[] = [
   "stripe",
   "dynamite",
   "bumeran",
+  "linkedin",
+  "wellfound",
 ];
 
 export interface SourceSearchRequest {
@@ -122,6 +130,14 @@ function getScraper(source: string): JobSourceScraper | undefined {
     return bumeranScraper;
   }
 
+  if (normalizedSource === "linkedin") {
+    return linkedInScraper;
+  }
+
+  if (normalizedSource === "wellfound") {
+    return wellfoundScraper;
+  }
+
   return undefined;
 }
 
@@ -132,4 +148,6 @@ type JobSourceScraper =
   | AccentureScraper
   | StripeScraper
   | DynamiteScraper
-  | BumeranScraper;
+  | BumeranScraper
+  | LinkedInScraper
+  | WellfoundScraper;

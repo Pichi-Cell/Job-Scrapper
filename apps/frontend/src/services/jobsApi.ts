@@ -165,6 +165,16 @@ export function buildSourceParams(
     params.set("includeClosed", String(filters.dynamiteIncludeClosed));
   }
 
+  if (source === "linkedin") {
+    addParam(params, "skills", skills);
+    params.set("remote", String(filters.remote));
+  }
+
+  if (source === "wellfound") {
+    addParam(params, "skills", skills);
+    params.set("remote", String(filters.remote));
+  }
+
   return params;
 }
 

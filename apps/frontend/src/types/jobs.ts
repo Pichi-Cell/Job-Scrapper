@@ -7,7 +7,9 @@ export type JobSource =
   | "accenture"
   | "stripe"
   | "dynamite"
-  | "bumeran";
+  | "bumeran"
+  | "linkedin"
+  | "wellfound";
 
 export interface JobFilters {
   sources: JobSource[];

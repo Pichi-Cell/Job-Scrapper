@@ -14,11 +14,17 @@ TypeScript + Node.js backend for scraping, parsing, normalizing, and exposing jo
 
 ## MCP server
 
-Build the project, then start the MCP stdio server:
+Build the project, then start the MCP HTTP server:
 
 ```sh
 npm run build
 npm run start:mcp
+```
+
+By default it listens at:
+
+```text
+http://localhost:3002/mcp
 ```
 
 The server exposes two tools:

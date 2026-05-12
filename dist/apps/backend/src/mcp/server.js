@@ -1,6 +1,9 @@
-import { stdin, stdout } from "node:process";
+import express from "express";
 import { listAgentJobPresets, searchAgentJobPreset, } from "../services/agent-preset.service.js";
 import { JOB_SOURCES } from "../services/job-search.service.js";
+const DEFAULT_PORT = 3002;
+const MCP_PATH = "/mcp";
+const SESSION_ID = "job-scraper";
 const SERVER_INFO = {
     name: "job-scraper",
     version: "0.1.0",
@@ -35,97 +38,99 @@ const LIST_PRESETS_TOOL = {
         additionalProperties: false,
     },
 };
-let buffer = "";
-stdin.setEncoding("utf8");
-stdin.on("data", (chunk) => {
-    buffer += chunk;
-    processBufferedMessages().catch((error) => {
-        writeLog("error", error instanceof Error ? error.message : String(error));
+const app = express();
+app.use(express.json({ limit: "1mb" }));
+app.use((_request, response, next) => {
+    response.setHeader("Access-Control-Allow-Origin", "*");
+    response.setHeader("Access-Control-Allow-Headers", "content-type, mcp-session-id");
+    response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    next();
+});
+app.options(MCP_PATH, (_request, response) => {
+    response.status(204).end();
+});
+app.get("/health", (_request, response) => {
+    response.status(200).json({
+        data: {
+            status: "ok",
+            transport: "http",
+            mcpPath: MCP_PATH,
+        },
+        error: null,
     });
 });
-async function processBufferedMessages() {
-    while (true) {
-        const message = readNextMessage();
-        if (message === undefined) {
-            return;
-        }
-        await handleMessage(message);
-    }
-}
-function readNextMessage() {
-    const headerEnd = buffer.indexOf("\r\n\r\n");
-    if (headerEnd === -1) {
-        return undefined;
-    }
-    const header = buffer.slice(0, headerEnd);
-    const contentLengthLine = header
-        .split("\r\n")
-        .find((line) => line.toLowerCase().startsWith("content-length:"));
-    const lengthText = contentLengthLine?.split(":")[1]?.trim();
-    const contentLength = lengthText === undefined ? Number.NaN : Number.parseInt(lengthText, 10);
-    if (!Number.isInteger(contentLength) || contentLength < 0) {
-        buffer = buffer.slice(headerEnd + 4);
-        return JSON.stringify({
-            jsonrpc: "2.0",
-            id: null,
-            error: {
-                code: -32700,
-                message: "Invalid Content-Length header",
-            },
-        });
-    }
-    const messageStart = headerEnd + 4;
-    const messageEnd = messageStart + contentLength;
-    if (buffer.length < messageEnd) {
-        return undefined;
-    }
-    const message = buffer.slice(messageStart, messageEnd);
-    buffer = buffer.slice(messageEnd);
-    return message;
-}
-async function handleMessage(rawMessage) {
-    let request;
-    try {
-        request = JSON.parse(rawMessage);
-    }
-    catch {
-        writeResponse({
-            jsonrpc: "2.0",
-            id: null,
-            error: {
-                code: -32700,
-                message: "Parse error",
-            },
-        });
+app.post(MCP_PATH, async (request, response) => {
+    response.setHeader("Mcp-Session-Id", SESSION_ID);
+    const payload = request.body;
+    if (Array.isArray(payload)) {
+        await handleBatch(payload, response);
         return;
     }
-    if (request.id === undefined) {
-        await handleNotification(request);
+    await handleSingleMessage(payload, response);
+});
+app.get(MCP_PATH, (_request, response) => {
+    response
+        .status(405)
+        .json(jsonRpcError(null, -32000, "SSE streams are not supported by this MCP server"));
+});
+app.use((_request, response) => {
+    response.status(404).json({
+        data: null,
+        error: "Route not found",
+    });
+});
+const port = Number.parseInt(process.env.MCP_PORT ?? `${DEFAULT_PORT}`, 10);
+const server = app.listen(port, () => {
+    console.log(`MCP HTTP server listening on http://localhost:${port}${MCP_PATH}`);
+});
+server.on("error", (error) => {
+    console.error("[fatal] MCP server error", error);
+    process.exitCode = 1;
+});
+async function handleBatch(messages, response) {
+    if (messages.length === 0) {
+        response.status(200).json(jsonRpcError(null, -32600, "Batch cannot be empty"));
         return;
     }
+    const results = await Promise.all(messages.map((message) => handleJsonRpcMessage(message)));
+    const responses = results.filter(isJsonRpcResponse);
+    if (responses.length === 0) {
+        response.status(202).end();
+        return;
+    }
+    response.status(200).json(responses);
+}
+async function handleSingleMessage(message, response) {
+    const result = await handleJsonRpcMessage(message);
+    if (result === undefined) {
+        response.status(202).end();
+        return;
+    }
+    response.status(200).json(result);
+}
+async function handleJsonRpcMessage(message) {
+    if (!isJsonRpcRequest(message)) {
+        return jsonRpcError(null, -32600, "Invalid JSON-RPC request");
+    }
+    if (message.id === undefined) {
+        return handleNotification(message);
+    }
     try {
-        writeResponse({
+        return {
             jsonrpc: "2.0",
-            id: request.id,
-            result: await dispatchRequest(request),
-        });
+            id: message.id,
+            result: await dispatchRequest(message),
+        };
     }
     catch (error) {
-        writeResponse({
-            jsonrpc: "2.0",
-            id: request.id,
-            error: {
-                code: -32603,
-                message: error instanceof Error ? error.message : "Internal error",
-            },
-        });
+        return jsonRpcError(message.id, getErrorCode(error), error instanceof Error ? error.message : "Internal error");
     }
 }
-async function handleNotification(request) {
+function handleNotification(request) {
     if (request.method === "notifications/initialized") {
-        return;
+        return undefined;
     }
-    writeLog("warning", `Ignored notification: ${request.method}`);
+    return jsonRpcError(null, -32601, `Unsupported notification: ${request.method}`);
 }
 async function dispatchRequest(request) {
     if (request.method === "initialize") {
@@ -145,7 +150,7 @@ async function dispatchRequest(request) {
     if (request.method === "tools/call") {
         return callTool(request.params);
     }
-    throw new Error(`Unsupported method: ${request.method}`);
+    throw new McpRequestError(-32601, `Unsupported method: ${request.method}`);
 }
 async function callTool(params) {
     const toolParams = params;
@@ -161,20 +166,20 @@ async function callTool(params) {
         const args = parseSearchPresetArgs(toolParams.arguments);
         return toolContent(await searchAgentJobPreset(args.preset, args.source));
     }
-    throw new Error(`Unknown tool: ${toolName}`);
+    throw new McpRequestError(-32602, `Unknown tool: ${toolName}`);
 }
 function parseSearchPresetArgs(args) {
     const searchArgs = (args ?? {});
     const preset = searchArgs.preset;
     const source = searchArgs.source;
     if (!isAgentPresetId(preset)) {
-        throw new Error("Tool argument preset must be one of: react, nodejs, fullstack, embedded");
+        throw new McpRequestError(-32602, "Tool argument preset must be one of: react, nodejs, fullstack, embedded");
     }
     if (source === undefined) {
         return { preset };
     }
     if (!isJobSource(source)) {
-        throw new Error(`Tool argument source must be one of: ${JOB_SOURCES.join(", ")}`);
+        throw new McpRequestError(-32602, `Tool argument source must be one of: ${JOB_SOURCES.join(", ")}`);
     }
     return {
         preset,
@@ -190,6 +195,16 @@ function isAgentPresetId(value) {
 function isJobSource(value) {
     return typeof value === "string" && JOB_SOURCES.includes(value);
 }
+function isJsonRpcRequest(value) {
+    if (typeof value !== "object" || value === null) {
+        return false;
+    }
+    const request = value;
+    return request.jsonrpc === "2.0" && typeof request.method === "string";
+}
+function isJsonRpcResponse(value) {
+    return value !== undefined;
+}
 function toolContent(value) {
     return {
         content: [
@@ -200,18 +215,24 @@ function toolContent(value) {
         ],
     };
 }
-function writeResponse(message) {
-    const payload = JSON.stringify(message);
-    stdout.write(`Content-Length: ${Buffer.byteLength(payload, "utf8")}\r\n\r\n${payload}`);
-}
-function writeLog(level, message) {
-    writeResponse({
+function jsonRpcError(id, code, message) {
+    return {
         jsonrpc: "2.0",
-        method: "notifications/message",
-        params: {
-            level,
-            logger: SERVER_INFO.name,
-            data: message,
+        id,
+        error: {
+            code,
+            message,
         },
-    });
+    };
+}
+function getErrorCode(error) {
+    return error instanceof McpRequestError ? error.code : -32603;
+}
+class McpRequestError extends Error {
+    code;
+    constructor(code, message) {
+        super(message);
+        this.code = code;
+        this.name = "McpRequestError";
+    }
 }

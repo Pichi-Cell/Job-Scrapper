@@ -119,6 +119,14 @@ export function buildSourceParams(source, filters) {
         params.set("hasPublicSalary", String(filters.dynamitePublicSalary));
         params.set("includeClosed", String(filters.dynamiteIncludeClosed));
     }
+    if (source === "linkedin") {
+        addParam(params, "skills", skills);
+        params.set("remote", String(filters.remote));
+    }
+    if (source === "wellfound") {
+        addParam(params, "skills", skills);
+        params.set("remote", String(filters.remote));
+    }
     return params;
 }
 function translateArea(area) {

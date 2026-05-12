@@ -1,4 +1,4 @@
-import { AccentureScraper, BumeranScraper, DynamiteScraper, EyScraper, GoogleScraper, IbmTalentScraper, StripeScraper, } from "../scrapers/index.js";
+import { AccentureScraper, BumeranScraper, DynamiteScraper, EyScraper, GoogleScraper, IbmTalentScraper, LinkedInScraper, StripeScraper, WellfoundScraper, } from "../scrapers/index.js";
 const ibmTalentScraper = new IbmTalentScraper();
 const eyScraper = new EyScraper();
 const googleScraper = new GoogleScraper();
@@ -6,6 +6,8 @@ const accentureScraper = new AccentureScraper();
 const stripeScraper = new StripeScraper();
 const dynamiteScraper = new DynamiteScraper();
 const bumeranScraper = new BumeranScraper();
+const linkedInScraper = new LinkedInScraper();
+const wellfoundScraper = new WellfoundScraper();
 export const JOB_SOURCES = [
     "ibm",
     "ey",
@@ -14,6 +16,8 @@ export const JOB_SOURCES = [
     "stripe",
     "dynamite",
     "bumeran",
+    "linkedin",
+    "wellfound",
 ];
 export async function searchSource(request) {
     const scraper = getScraper(request.source);
@@ -70,6 +74,12 @@ function getScraper(source) {
     }
     if (normalizedSource === "bumeran") {
         return bumeranScraper;
+    }
+    if (normalizedSource === "linkedin") {
+        return linkedInScraper;
+    }
+    if (normalizedSource === "wellfound") {
+        return wellfoundScraper;
     }
     return undefined;
 }

@@ -4,4 +4,6 @@ export { DynamiteScraper } from "./dynamite.scraper.js";
 export { EyScraper } from "./ey.scraper.js";
 export { GoogleScraper } from "./google.scraper.js";
 export { IbmTalentScraper } from "./ibm-talent.scraper.js";
+export { LinkedInScraper } from "./linkedin.scraper.js";
 export { StripeScraper } from "./stripe.scraper.js";
+export { WellfoundScraper } from "./wellfound.scraper.js";
